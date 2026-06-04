@@ -1,0 +1,13 @@
+seed: 2026
+image_size: 64
+image_channels: 3
+base_channels: 32
+batch_size: 8
+learning_rate: 0.0002
+steps: 1000
+sample_steps: 4
+degradation:
+  blur_kernel_size: 9
+  blur_sigma: 1.5
+  noise_sigma: 0.03
+  scale: 2
