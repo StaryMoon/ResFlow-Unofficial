@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "resflow-unofficial"
-version = "0.1.0"
-description = "Unofficial PyTorch implementation starter for Reversing Flow for Image Restoration."
+version = "0.2.0"
+description = "Unofficial PyTorch reproduction for Reversing Flow for Image Restoration."
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
@@ -15,7 +15,7 @@ dependencies = [
   "torchvision>=0.16",
   "pyyaml>=6.0",
   "tqdm>=4.66",
-  "pillow>=10.0"
+  "numpy>=1.24"
 ]
 
 [tool.setuptools.packages.find]

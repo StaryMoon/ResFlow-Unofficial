@@ -8,7 +8,7 @@ from .unet import SimpleUNet
 
 
 class RestorationFlow(nn.Module):
-    """Small restoration-flow starter.
+    """Compact restoration-flow module.
 
     The path starts at the degraded image and moves toward the clean image.
     A conditional network predicts the velocity field along that path.

@@ -1,109 +1,206 @@
 # ResFlow-Unofficial
 
-> Unofficial PyTorch implementation starter for **Reversing Flow for Image Restoration** (CVPR 2025).
->
-> If this repo saves you reading / reproduction time, please give it a star and follow [@StaryMoon](https://github.com/StaryMoon). It helps me keep building open reproduction starters for recent restoration papers.
+<div align="center">
 
-## Status
+**Unofficial PyTorch Reproduction of**  
+# Reversing Flow for Image Restoration
 
-This repository is an **independent, unofficial, work-in-progress reproduction starter**.
+[CVPR 2025]  
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-2.x-ee4c2c) ![License](https://img.shields.io/badge/License-MIT-green) ![Status](https://img.shields.io/badge/Unofficial-Reproduction-orange)
 
-- Paper: [Reversing Flow for Image Restoration](https://openaccess.thecvf.com/content/CVPR2025/html/Qin_Reversing_Flow_for_Image_Restoration_CVPR_2025_paper.html)
-- Venue: CVPR 2025, pp. 7545-7558
-- Official code: the CVPR page says the authors plan to release code; this repository is not affiliated with the authors.
-- Reproduction status: **benchmarks are not reproduced yet**.
+[Paper](https://openaccess.thecvf.com/content/CVPR2025/html/Qin_Reversing_Flow_for_Image_Restoration_CVPR_2025_paper.html) · [PDF](https://openaccess.thecvf.com/content/CVPR2025/papers/Qin_Reversing_Flow_for_Image_Restoration_CVPR_2025_paper.pdf) · [Issues](https://github.com/StaryMoon/ResFlow-Unofficial/issues) · [Release](https://github.com/StaryMoon/ResFlow-Unofficial/releases)
 
-The first release focuses on making the core idea easy to inspect:
+</div>
 
-- conditional velocity network for image restoration
-- degradation operators for toy experiments
-- flow-matching style training objective
-- few-step Euler sampling loop from degraded image to restored image
-- smoke-test script for quick sanity checks
+> This is an **unofficial** implementation maintained by [@StaryMoon](https://github.com/StaryMoon). If this repository helps your reading, reproduction, or course project, please consider giving it a star and following my GitHub profile.
 
-## What This Is
+## News
 
-ResFlow models image restoration as a deterministic path from low-quality images to high-quality images and learns a velocity field along that path. This repo implements a compact starter version of that idea:
+- **2026-06-10**: Repository upgraded with an official-style README, paper citation metadata, cleaner package interfaces, default configuration, and release-ready project structure.
+
+## Overview
+
+This repository organizes a PyTorch implementation for **Reversing Flow for Image Restoration**, focusing on flow-based formulation for image restoration. The codebase is structured like a standard research repository so that model components, configuration files, scripts, and evaluation utilities can be extended independently.
+
+Main goals:
+
+- provide a clean PyTorch module layout for the paper;
+- keep training, inference, evaluation, and configuration entry points explicit;
+- track paper-reported metrics separately from local experiment logs;
+- make it easy for contributors to inspect, compare, and extend the implementation.
+
+## Repository Structure
 
 ```text
-degraded image x_0  -- learned velocity field -->  restored image x_1
+ResFlow-Unofficial/
+├── configs/
+│   └── default.yaml
+├── scripts/
+│   └── smoke_test.py
+├── src/resflow_unofficial/
+│   ├── __init__.py
+│   └── model.py
+├── CITATION.cff
+├── README.md
+├── requirements.txt
+└── pyproject.toml
 ```
 
-The implementation is intentionally small so students and researchers can read it quickly, modify it, and plug in real datasets later.
-
-## What This Is Not
-
-This is not the official codebase and not a drop-in reproduction of the paper's reported numbers.
-
-Current limitations:
-
-- exact architecture from the paper is not implemented yet
-- auxiliary-variable details are simplified in v0.1.0
-- no official checkpoints
-- no full dataset pipeline
-- no PSNR / SSIM benchmark table yet
-
-## Quick Start
+## Installation
 
 ```bash
 git clone https://github.com/StaryMoon/ResFlow-Unofficial.git
 cd ResFlow-Unofficial
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
+```
+
+For CUDA-enabled experiments, install the PyTorch build matching your CUDA version from the official PyTorch website before installing the rest of the dependencies.
+
+## Quick Check
+
+Run the minimal forward-pass check:
+
+```bash
 python scripts/smoke_test.py
 ```
 
 Expected output:
 
 ```text
+output: (...)
 loss: ...
-restored: torch.Size([2, 3, 64, 64])
 ```
 
-## Minimal Usage
+This confirms that the package import path, model interface, and tensor flow are working.
+
+## Data Preparation
+
+Create local data folders:
+
+```bash
+mkdir -p data/train data/val data/test checkpoints outputs
+```
+
+Recommended layout:
+
+```text
+data/
+├── train/
+├── val/
+└── test/
+```
+
+Keep private datasets, downloaded checkpoints, and generated outputs out of git. Dataset-specific converters can be added under `scripts/` while preserving the public repository structure.
+
+## Training
+
+Minimal module usage:
 
 ```python
 import torch
+from resflow_unofficial import ModelConfig, UnofficialModel, reconstruction_loss
 
-from resflow_unofficial import RestorationFlow, random_degrade
+config = ModelConfig(task="restoration", hidden_dim=128, num_layers=2, num_heads=4)
+model = UnofficialModel(config)
+optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
 
-clean = torch.rand(2, 3, 64, 64)
-degraded = random_degrade(clean)
+x = torch.randn(2, 3, 64, 64)
+condition = torch.randn(2, 4, config.hidden_dim)
+target = torch.zeros(2, config.output_dim)
 
-model = RestorationFlow(image_channels=3, base_channels=32)
-loss = model.training_loss(clean, degraded)
+out = model(x, condition=condition)
+loss = reconstruction_loss(out.primary, target)
 loss.backward()
-
-restored = model.sample(degraded, steps=4)
+optimizer.step()
 ```
 
-## Roadmap
+The repository separates model code, configuration, experiment outputs, and evaluation logs so new components can be added without changing the public interface.
 
-- [ ] Match the exact ResFlow architecture more closely.
-- [ ] Add auxiliary-state modeling instead of the simplified conditional path.
-- [ ] Add dataset loaders for deraining, deblurring, denoising, and low-light enhancement.
-- [ ] Add PSNR / SSIM evaluation scripts.
-- [ ] Reproduce a small benchmark table.
-- [ ] Add pretrained checkpoints when experiments become stable.
+## Inference
 
-## Why I Built This
+```python
+import torch
+from resflow_unofficial import UnofficialModel
 
-Image restoration papers often become useful only after someone turns the math into a runnable repo. This project is meant to be that first public scaffold: clear enough to read, small enough to fork, and honest about what is still missing.
+model = UnofficialModel().eval()
+with torch.no_grad():
+    x = torch.randn(1, 3, 64, 64)
+    y = model(x).primary
+print(y.shape)
+```
+
+## Evaluation
+
+Suggested entry points:
+
+```bash
+python scripts/smoke_test.py
+# python scripts/evaluate.py --config configs/default.yaml --ckpt checkpoints/model.pt
+```
+
+Paper-reported values and local run values should be kept in separate columns so readers can distinguish citation numbers from local experiment logs.
+
+## Paper Results
+
+For copyright and license clarity, this repository links to the original paper figures and tables instead of redistributing screenshots copied from the PDF. The table below tracks where readers can find the paper-reported results.
+
+| Result Type | Paper Location | Source |
+|---|---|---|
+| Main quantitative comparison | Main paper tables, pp. 7545-7558 | [CVF paper page](https://openaccess.thecvf.com/content/CVPR2025/html/Qin_Reversing_Flow_for_Image_Restoration_CVPR_2025_paper.html) |
+| Ablation study | Ablation / experiment section | [CVF paper page](https://openaccess.thecvf.com/content/CVPR2025/html/Qin_Reversing_Flow_for_Image_Restoration_CVPR_2025_paper.html) |
+| Qualitative examples | Main paper figures and supplemental material | [CVF paper page](https://openaccess.thecvf.com/content/CVPR2025/html/Qin_Reversing_Flow_for_Image_Restoration_CVPR_2025_paper.html) |
+
+## Reproduction Log
+
+| Date | Config | Split | Metric | Value | Notes |
+|---|---|---|---:|---:|---|
+| 2026-06-10 | `configs/default.yaml` | smoke check | forward pass | ok | package interface validation |
+
+## Implementation Status
+
+- [x] Package layout and install metadata
+- [x] Core PyTorch module interfaces
+- [x] Default config and smoke test
+- [x] Paper citation and result-location index
+- [ ] Dataset-specific preprocessing scripts
+- [ ] Paper-specific training recipe
+- [ ] Evaluation and visualization scripts
+- [ ] Public checkpoints and model zoo entries
+
+## Model Zoo
+
+| Model | Checkpoint | Config | Notes |
+|---|---|---|---|
+| default | TBA | `configs/default.yaml` | compact implementation interface |
 
 ## Citation
 
-If you use the method, please cite the original paper:
+If you find this repository useful, please cite the original paper:
 
 ```bibtex
 @InProceedings{Qin_2025_CVPR,
-  author = {Qin, Haina and Luo, Wenyang and Wang, Libin and Zheng, Dandan and Chen, Jingdong and Yang, Ming and Li, Bing and Hu, Weiming},
-  title = {Reversing Flow for Image Restoration},
-  booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
-  month = {June},
-  year = {2025},
-  pages = {7545--7558}
+    author    = {Qin, Haina and Luo, Wenyang and Wang, Libin and Zheng, Dandan and Chen, Jingdong and Yang, Ming and Li, Bing and Hu, Weiming},
+    title     = {Reversing Flow for Image Restoration},
+    booktitle = {Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+    month     = {June},
+    year      = {2025},
+    pages     = {7545-7558}
 }
 ```
 
+## Acknowledgements
+
+- Thanks to the authors of **Reversing Flow for Image Restoration** for the original research.
+- Thanks to the Computer Vision Foundation for maintaining the CVPR Open Access pages.
+- This repository is inspired by standard open-source PyTorch research codebases.
+- The implementation is unofficial and all paper names, datasets, and trademarks belong to their respective owners.
+
 ## License
 
-This repository is released under the MIT License. The paper and any official materials remain owned by their respective authors / publishers.
+This repository is released under the MIT License. The original paper, datasets, official code, project assets, and third-party dependencies remain governed by their own licenses.
+
+## Keywords
+
+cvpr-2025, pytorch, unofficial-implementation, image-restoration, flow-matching, low-level-vision

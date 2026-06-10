@@ -1,0 +1,32 @@
+cff-version: 1.2.0
+message: "If you use this repository, please cite the original paper."
+title: "Reversing Flow for Image Restoration"
+type: software
+authors:
+  - family-names: Liu
+    given-names: Minghao
+repository-code: "https://github.com/StaryMoon/ResFlow-Unofficial"
+license: MIT
+preferred-citation:
+  type: conference-paper
+  title: "Reversing Flow for Image Restoration"
+  authors:
+  - family-names: Qin
+    given-names: Haina
+  - family-names: Luo
+    given-names: Wenyang
+  - family-names: Wang
+    given-names: Libin
+  - family-names: Zheng
+    given-names: Dandan
+  - family-names: Chen
+    given-names: Jingdong
+  - family-names: Yang
+    given-names: Ming
+  - family-names: Li
+    given-names: Bing
+  - family-names: Hu
+    given-names: Weiming
+  conference: "Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)"
+  year: 2025
+  url: "https://openaccess.thecvf.com/content/CVPR2025/html/Qin_Reversing_Flow_for_Image_Restoration_CVPR_2025_paper.html"
